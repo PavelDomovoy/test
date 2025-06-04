@@ -175,8 +175,17 @@ export default class SlotMachine extends PIXI.Container {
       this.stopTimeouts.forEach((t) => clearTimeout(t));
       this.stopTimeouts = [];
     }
+    const loopsPerMs = (SPIN_SPEED * 60) / (SYMBOL_SIZE * 1000);
     this.reels.forEach((reel, i) => {
-      reel.speed = 0;
+      const strip = this.reelSets[this.activeSet][i];
+      const loops = Math.round((SPIN_TIME + i * STOP_DELAY) * loopsPerMs);
+      reel.symbols.forEach((s, idx) => {
+        const offset = loops + idx - EXTRA_SYMBOLS;
+        const id = strip[offset % strip.length];
+        s.texture = this.textures[id];
+        s._id = id;
+        s.y = (idx - EXTRA_SYMBOLS) * SYMBOL_SIZE;
+      });
       this.stopReel(reel, i);
     });
     this.spinning = false;
