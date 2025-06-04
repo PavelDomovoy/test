@@ -8,6 +8,10 @@ const {
   symbolSize: SYMBOL_SIZE,
   extraSymbols: EXTRA_SYMBOLS,
   spinSpeed: SPIN_SPEED,
+  spinTime: SPIN_TIME,
+  startDelay: START_DELAY,
+  stopDelay: STOP_DELAY,
+  allowSkip: ALLOW_SKIP,
 } = MACHINE_CONFIG;
 
 const SYMBOLS_PER_REEL = VISIBLE_ROWS + EXTRA_SYMBOLS;
@@ -59,6 +63,7 @@ export default class SlotMachine extends PIXI.Container {
     this.reels = [];
     this.reelMatrix = [];
     this.spinning = false;
+    this.onEnd = null;
 
     this._createReels();
     this.app.ticker.add((delta) => this.update(delta));
@@ -131,23 +136,51 @@ export default class SlotMachine extends PIXI.Container {
   }
 
   start() {
+    if (this.spinning) return;
     this.activeSet = Math.floor(Math.random() * this.reelSets.length);
     this.spinning = true;
+    this.startTimeouts = [];
+    this.stopTimeouts = [];
     this.reels.forEach((reel, i) => {
-      reel.speed = SPIN_SPEED;
-      reel.stripIndex = 0;
-      setTimeout(() => {
+      const startT = setTimeout(() => {
+        reel.speed = SPIN_SPEED;
+        reel.stripIndex = 0;
+      }, i * START_DELAY);
+      this.startTimeouts.push(startT);
+
+      const stopT = setTimeout(() => {
         this.stopReel(reel, i);
         if (i === this.reels.length - 1) {
           this.spinning = false;
+          if (this.onEnd) this.onEnd();
           console.log('Reel matrix:', this.reelMatrix);
         }
-      }, 1000 + i * 500);
+      }, SPIN_TIME + i * STOP_DELAY);
+      this.stopTimeouts.push(stopT);
     });
   }
 
   stop() {
     this.reels.forEach((reel, i) => this.stopReel(reel, i));
     this.spinning = false;
+  }
+
+  skip() {
+    if (!this.spinning || !ALLOW_SKIP) return;
+    if (this.startTimeouts) {
+      this.startTimeouts.forEach((t) => clearTimeout(t));
+      this.startTimeouts = [];
+    }
+    if (this.stopTimeouts) {
+      this.stopTimeouts.forEach((t) => clearTimeout(t));
+      this.stopTimeouts = [];
+    }
+    this.reels.forEach((reel, i) => {
+      reel.speed = 0;
+      this.stopReel(reel, i);
+    });
+    this.spinning = false;
+    if (this.onEnd) this.onEnd();
+    console.log('Reel matrix:', this.reelMatrix);
   }
 }
