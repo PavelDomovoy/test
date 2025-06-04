@@ -12,6 +12,21 @@ const app = new PIXI.Application({
 const slotMachine = new SlotMachine(app);
 app.stage.addChild(slotMachine);
 
-document.getElementById('spin-button').addEventListener('click', () => {
+const spinButton = document.getElementById('spin-button');
+
+slotMachine.onEnd = () => {
+  spinButton.textContent = 'Spin';
+};
+
+spinButton.addEventListener('click', () => {
+  if (slotMachine.spinning) {
+    if (MACHINE_CONFIG.allowSkip) {
+      slotMachine.skip();
+    }
+    return;
+  }
   slotMachine.start();
+  if (MACHINE_CONFIG.allowSkip) {
+    spinButton.textContent = 'Skip';
+  }
 });
