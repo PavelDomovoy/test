@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, initial-scale=1, maximum-scale=1" name="viewport" />
+  <title><%= htmlWebpackPlugin.options.title %></title>
+  <style>
+    #preloader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      z-index: -1;
+      pointer-events: none;
+    
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="preloader">
+    <div>Loading...</div>
+  </div>
+</body>
+
+</html>
