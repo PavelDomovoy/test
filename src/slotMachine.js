@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { MACHINE_CONFIG } from './config.js';
+import { rafSetTimeout, rafClearTimeout } from './rafTimers.js';
 
 const {
   reels: REEL_COUNT,
@@ -142,13 +143,13 @@ export default class SlotMachine extends PIXI.Container {
     this.startTimeouts = [];
     this.stopTimeouts = [];
     this.reels.forEach((reel, i) => {
-      const startT = setTimeout(() => {
+      const startT = rafSetTimeout(() => {
         reel.speed = SPIN_SPEED;
         reel.stripIndex = 0;
       }, i * START_DELAY);
       this.startTimeouts.push(startT);
 
-      const stopT = setTimeout(() => {
+      const stopT = rafSetTimeout(() => {
         this.stopReel(reel, i);
         if (i === this.reels.length - 1) {
           this.spinning = false;
@@ -168,11 +169,11 @@ export default class SlotMachine extends PIXI.Container {
   skip() {
     if (!this.spinning || !ALLOW_SKIP) return;
     if (this.startTimeouts) {
-      this.startTimeouts.forEach((t) => clearTimeout(t));
+      this.startTimeouts.forEach((t) => rafClearTimeout(t));
       this.startTimeouts = [];
     }
     if (this.stopTimeouts) {
-      this.stopTimeouts.forEach((t) => clearTimeout(t));
+      this.stopTimeouts.forEach((t) => rafClearTimeout(t));
       this.stopTimeouts = [];
     }
     const loopsPerMs = (SPIN_SPEED * 60) / (SYMBOL_SIZE * 1000);
